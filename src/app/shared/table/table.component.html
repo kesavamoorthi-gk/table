@@ -1,6 +1,6 @@
 <!-- table.component.html -->
-<div class="flex items-center justify-between mb-4">
-    <div class="relative w-full">
+<div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
+    <div class="">
         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <svg aria-hidden="true" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor"
                 viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -13,12 +13,30 @@
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="Search" (input)="onSearch($event)">
     </div>
+    <div class="">
+        <select [formControl]="brandFilter" (change)="onBrandFilterChange()"
+            class="block appearance-none w-full bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="">All Categories</option>
+            <option *ngFor="let brand of getCategoryBrands()" [value]="brand">{{ brand }}</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </div>
+    </div>
 </div>
+
+
+
 
 <div class="overflow-x-auto">
     <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
             <tr>
+
+                <th scope="col" class="px-4 py-3">#</th>
                 <th scope="col" class="px-4 py-3" *ngFor="let column of columns" (click)="onSort(column)">
                     <div class="flex items-center justify-between">
                         <span>{{ column.label }}</span>
@@ -44,7 +62,8 @@
         </thead>
         <tbody>
             <tr class="border-b dark:border-gray-700"
-                *ngFor="let item of getFilteredData() | slice: (currentPage - 1) * pageSize : currentPage * pageSize">
+                *ngFor="let item of getFilteredData() | slice: (currentPage - 1) * pageSize : currentPage * pageSize;let i = index">
+                <td class="px-4 py-3">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
                 <td class="px-4 py-3" *ngFor="let column of columns">{{ item[column.key] }}</td>
             </tr>
         </tbody>
@@ -55,16 +74,34 @@
     aria-label="Table navigation">
     <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
         Showing
-        <span class="font-semibold text-gray-900 dark:text-white">{{ (currentPage - 1) * pageSize + 1 }} -
-            {{ currentPage * pageSize > getFilteredData().length ? getFilteredData().length : currentPage * pageSize
-            }}</span>
-        of
-        <span class="font-semibold text-gray-900 dark:text-white">{{ getFilteredData().length }}</span>
+        <ng-container *ngIf="getFilteredData().length > 0; else noData">
+            <span class="font-semibold text-gray-900 dark:text-white">
+                {{ (currentPage - 1) * pageSize + 1 }} -
+                {{ currentPage * pageSize > getFilteredData().length ? getFilteredData().length : currentPage * pageSize
+                }}
+            </span>
+            of
+            <span class="font-semibold text-gray-900 dark:text-white">{{ getFilteredData().length }}</span>
+        </ng-container>
+        <ng-template #noData>
+            <span class="font-semibold text-gray-900 dark:text-white">0</span>
+            of
+            <span class="font-semibold text-gray-900 dark:text-white">0</span>
+        </ng-template>
     </span>
     <ul class="inline-flex items-stretch -space-x-px">
         <li>
-            <a href="#" (click)="onPageChange(currentPage - 1)"
+            <a href="#" (click)="onPageChange(1)" [class.disabled]="currentPage === 1"
+                [class.pointer-events-none]="currentPage === 1"
                 class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white rounded-l-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+                <span class="sr-only">First</span>
+                First
+            </a>
+        </li>
+        <li>
+            <a href="#" (click)="onPageChange(currentPage - 1)" [class.disabled]="currentPage === 1"
+                [class.pointer-events-none]="currentPage === 1"
+                class="flex items-center justify-center h-full py-1.5 px-3 ml-0 text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                 <span class="sr-only">Previous</span>
                 <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"
                     xmlns="http://www.w3.org/2000/svg">
@@ -77,11 +114,11 @@
         <li *ngFor="let page of getPageNumbers()">
             <a href="#" (click)="onPageChange(page)"
                 class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-                [class.active]="page === currentPage" [class.bg-primary-50]="page === currentPage">{{ page
-                }}</a>
+                [class.active]="page === currentPage" [class.bg-primary-50]="page === currentPage">{{ page }}</a>
         </li>
         <li>
-            <a href="#" (click)="onPageChange(currentPage + 1)"
+            <a href="#" (click)="onPageChange(currentPage + 1)" [class.disabled]="!hasNextPage"
+                [class.pointer-events-none]="!hasNextPage"
                 class="flex items-center justify-center h-full py-1.5 px-3 leading-tight text-gray-500 bg-white rounded-r-lg border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
                 <span class="sr-only">Next</span>
                 <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"
@@ -90,6 +127,14 @@
                         d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
                         clip-rule="evenodd"></path>
                 </svg>
+            </a>
+        </li>
+        <li>
+            <a href="#" (click)="onPageChange(getFilteredData().length/pageSize)" class="flex items-center justify-center text-sm py-2 px-3 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white
+                " [class.active]="currentPage === getFilteredData().length/pageSize "
+                [class.pointer-events-none]="currentPage === getPageNumbers().length || getFilteredData().length === 0"
+                [class.bg-primary-50]="currentPage === getFilteredData().length/pageSize ">
+                Last
             </a>
         </li>
     </ul>
